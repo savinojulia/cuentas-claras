@@ -1,5 +1,5 @@
 // Guarda la app en el celular para que funcione sin internet.
-const CACHE = "cuentas-claras-1792779460";
+const CACHE = "cuentas-claras-1793297631";
 const CORE = ["./", "index.html", "manifest.webmanifest", "icon-192.png", "icon-512.png", "apple-touch-icon.png"];
 
 self.addEventListener("install", e => {

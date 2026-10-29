@@ -22,7 +22,8 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&display=swap">
 <style>
 /* Layout: una columna tipo libreta, pestañas grandes arriba, panel inferior para anotar.
-   Paleta pastel compartida con "Tasas Argentina": periwinkle, celeste, menta, salvia y rosa (solo tema claro, a propósito). */
+   Paleta pastel compartida con "Tasas Argentina": periwinkle, celeste, menta, salvia y rosa (solo tema claro, a propósito).
+   El menú del pie permite cambiarla por las mismas paletas que Inversiones Claras. */
 :root {
   --peri: #809bce; --sky: #95b8d1; --mint: #b8e0d2; --sage: #d6eadf; --rose: #eac4d5;
   --bg: #f4f8f6;
@@ -152,6 +153,8 @@ button { cursor: pointer; }
 .pill.bad { background: color-mix(in srgb, var(--out) 18%, transparent); color: var(--out); }
 .pill.mid { background: color-mix(in srgb, var(--warn) 20%, transparent); color: var(--warn); }
 .sub { font-size: 0.88rem; color: var(--muted); }
+.palette-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.palette-row select { padding: 8px 12px; border: 2px solid var(--line); border-radius: 10px; background: var(--surface); }
 
 .facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; }
 .fact { background: var(--soft); border-radius: 12px; padding: 12px 14px; display: grid; gap: 2px; }
@@ -190,7 +193,23 @@ tr.now td { background: var(--soft); }
 .mini { display: grid; gap: 3px; width: 90px; margin-left: auto; }
 .mini i { display: block; height: 6px; border-radius: 3px; }
 
-/* Presupuesto */
+/* Tarjeta de crédito */
+.ccdue { display: grid; gap: 8px; background: color-mix(in srgb, var(--rose) 35%, var(--surface)); border-radius: 14px; padding: 14px 16px; min-width: 0; }
+.ccdue .row { display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+.ccdue .big-num { font-family: var(--display); font-weight: 800; font-size: 1.5rem; font-variant-numeric: tabular-nums; }
+.ccdue .btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.ccdue .btns .btn { flex: 1 1 160px; }
+.ccdue .btn.ghost { background: var(--surface); }
+.ccdue .sync { display: grid; gap: 8px; background: var(--surface); border-radius: 12px; padding: 12px; }
+.ccdue .sync input { width: 100%; }
+.ccpart { display: grid; gap: 10px; }
+.ccpart h3 { font-size: 1.05rem; }
+.bar.split { display: flex; }
+.bar.split > i { border-radius: 0; }
+.cat.now .name { font-weight: 700; }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.ccfields { display: grid; gap: 16px; }
 /* Ahorros */
 .goals { display: grid; gap: 14px; }
 .goal { --c: var(--sage); background: color-mix(in srgb, var(--c) 40%, var(--surface)); border-radius: 16px; padding: 16px 18px; display: grid; gap: 10px; min-width: 0; }
@@ -325,22 +344,30 @@ details.help ol { margin: 0 0 12px; padding-left: 22px; display: grid; gap: 6px;
       <button class="big in" data-add="i">+ Anotar ingreso</button>
     </div>
 
-    <details class="help" id="help">
-      <summary>¿Cómo se usa?</summary>
-      <ol>
-        <li>Al principio del mes, anotá lo que cobrás con <strong>Anotar ingreso</strong>.</li>
-        <li>Cada vez que pagás algo, tocá <strong>Anotar gasto</strong>, poné cuánto y escribí qué fue (por ejemplo: luz). La página lo ubica sola en una categoría.</li>
-        <li>Si querés juntar plata para algo, andá a <strong>Ahorros</strong>, creá un objetivo (por ejemplo: un viaje) y tocá <strong>Poner plata</strong> cada vez que separes algo.</li>
-        <li>Mirá esta pantalla cuando quieras: te dice cuánto te queda y en qué se te va la plata.</li>
-      </ol>
-    </details>
-
     <article class="card">
       <header>
-        <h2>¿En qué se fue la plata?</h2>
+        <h2>Gastos del mes</h2>
         <p class="sub" id="catSub">Tus gastos del mes, de mayor a menor.</p>
       </header>
       <div class="cats" id="catBars"></div>
+    </article>
+
+    <article class="card" id="ccCard" hidden>
+      <header>
+        <h2>Tarjeta de crédito</h2>
+        <p class="sub">Lo que comprás con tarjeta no cuenta como gasto hasta que pagás el resumen. Cuando lo pagás, cada cuota pasa a tus gastos en su categoría.</p>
+      </header>
+      <div class="ccpart" id="ccDue"></div>
+      <div class="ccpart">
+        <h3>Cuánto pagás de tarjeta cada mes</h3>
+        <div class="legend sub"><span><span class="dot" style="background:var(--accent)"></span>Pagado</span><span><span class="dot" style="background:color-mix(in srgb, var(--accent) 35%, var(--surface))"></span>Por pagar</span></div>
+        <div class="cats" id="ccBars"></div>
+        <p class="sub" id="ccTotal"></p>
+      </div>
+      <div class="ccpart">
+        <h3>Compras que todavía estás pagando</h3>
+        <div class="day" id="ccList"></div>
+      </div>
     </article>
 
     <article class="card">
@@ -355,6 +382,17 @@ details.help ol { margin: 0 0 12px; padding-left: 22px; display: grid; gap: 6px;
       <header><h2>Datos del mes</h2></header>
       <div class="facts" id="facts"></div>
     </article>
+
+    <details class="help" id="help">
+      <summary>¿Cómo se usa?</summary>
+      <ol>
+        <li>Al principio del mes, anotá lo que cobrás con <strong>Anotar ingreso</strong>.</li>
+        <li>Cada vez que pagás algo, tocá <strong>Anotar gasto</strong>, poné cuánto y escribí qué fue (por ejemplo: luz). La página lo ubica sola en una categoría.</li>
+        <li>Si pagaste con tarjeta de crédito, elegí <strong>Tarjeta de crédito</strong> y en cuántas cuotas. No cuenta como gasto hasta que tocás <strong>Ya pagué este resumen</strong>.</li>
+        <li>Si querés juntar plata para algo, andá a <strong>Ahorros</strong>, creá un objetivo (por ejemplo: un viaje) y tocá <strong>Poner plata</strong> cada vez que separes algo.</li>
+        <li>Mirá esta pantalla cuando quieras: te dice cuánto te queda y en qué se te va la plata.</li>
+      </ol>
+    </details>
   </section>
 
   <!-- MOVIMIENTOS -->
@@ -462,6 +500,20 @@ details.help ol { margin: 0 0 12px; padding-left: 22px; display: grid; gap: 6px;
       </form>
     </article>
   </section>
+
+  <div class="palette-row">
+    <label for="palette" class="sub" style="font-weight:700">Colores de la página</label>
+    <select id="palette">
+      <option value="pastel">Pastel</option>
+      <option value="ciruela">Ciruela y lavanda</option>
+      <option value="tierra">Tierra</option>
+      <option value="banca">Banca clásica</option>
+      <option value="marino">Marino y arena</option>
+      <option value="mediterraneo">Mediterráneo</option>
+      <option value="atardecer">Atardecer</option>
+      <option value="grafito">Grafito y lima suave</option>
+    </select>
+  </div>
 </div>
 
 <!-- Panel para anotar -->
@@ -495,8 +547,33 @@ details.help ol { margin: 0 0 12px; padding-left: 22px; display: grid; gap: 6px;
       <input id="fUsd" class="amount num" inputmode="decimal" autocomplete="off" placeholder="US$ 0">
       <span class="sub" id="usdHint">Arriba poné los pesos que usaste (eso cuenta como ahorro del mes). Acá, los dólares que te quedaron.</span>
     </div>
+    <div class="field" id="payField" hidden>
+      <span id="payLbl">¿Cómo pagaste?</span>
+      <div class="seg" role="group" aria-labelledby="payLbl">
+        <button type="button" data-pay="now" aria-pressed="true">Efectivo o débito</button>
+        <button type="button" data-pay="cc" aria-pressed="false">Tarjeta de crédito</button>
+      </div>
+    </div>
+    <div class="ccfields" id="ccFields" hidden>
+      <div class="two">
+        <div class="field">
+          <label for="fCuotas">¿En cuántas cuotas?</label>
+          <select id="fCuotas"></select>
+        </div>
+        <div class="field">
+          <label for="fFirst">¿En qué resumen entra?</label>
+          <select id="fFirst"></select>
+        </div>
+      </div>
+      <div class="field">
+        <label for="fCard">¿Qué tarjeta? (opcional)</label>
+        <input id="fCard" type="text" maxlength="30" list="pastCards" autocomplete="off" placeholder="Ej: Visa Galicia">
+        <datalist id="pastCards"></datalist>
+      </div>
+      <p class="sub" id="ccHint" aria-live="polite"></p>
+    </div>
     <div class="field">
-      <label for="fDate">Fecha</label>
+      <label for="fDate" id="fDateLbl">Fecha</label>
       <input id="fDate" type="date">
     </div>
     <p class="err" id="fErr" role="alert" hidden></p>
@@ -536,6 +613,13 @@ function cleanGoals(list) {
   return (Array.isArray(list) ? list : []).filter(g => g && g.id && g.name && g.target > 0)
     .map(g => ({ id: String(g.id), name: String(g.name).slice(0, 60), target: +g.target, by: /^\d{4}-\d{2}$/.test(g.by || "") ? g.by : "",
       cur: g.cur === "USD" ? "USD" : "ARS", where: String(g.where || "").slice(0, 40), adj: Number.isFinite(+g.adj) ? +g.adj : 0 }));
+}
+// Compras con tarjeta: {id, note, cat, amt (total), n (cuotas), first: "AAAA-MM" del primer resumen, d: fecha de compra, card}
+// Al pagar un resumen, cada cuota pasa a ser un gasto común con cp (id de la compra), ci (número de cuota) y cn (total de cuotas)
+function cleanCards(list) {
+  return (Array.isArray(list) ? list : []).filter(p => p && p.id && p.amt > 0 && /^\d{4}-\d{2}$/.test(p.first || "") && /^\d{4}-\d{2}-\d{2}$/.test(p.d || ""))
+    .map(p => ({ id: String(p.id), note: String(p.note || "").slice(0, 80), cat: String(p.cat || "otros"), amt: +p.amt,
+      n: Math.min(48, Math.max(1, Math.round(+p.n) || 1)), first: p.first, d: p.d, card: String(p.card || "").slice(0, 30) }));
 }
 // Pasar lo que sobra a ahorro: {auto, goal, from: primer mes en que corre, done: meses ya pasados}
 function cleanSettings(s) {
@@ -626,7 +710,7 @@ function parseAmount(raw) {
   return /^\d+(\.\d+)?$/.test(s) ? parseFloat(s) : NaN;
 }
 
-let state = { months: {}, goals: [], settings: cleanSettings() };
+let state = { months: {}, goals: [], cards: [], settings: cleanSettings() };
 let demo = false;
 let cur = todayKey;
 let tab = "mes";
@@ -656,7 +740,6 @@ function demoState() {
     mk(todayKey, 12, "i", "otrosi", 95000, "Arreglo de computadora"),
     mk(todayKey, 14, "g", "super", 38200, "Verdulería"),
     mk(todayKey, 16, "g", "super", 27500, "Farmacia"),
-    mk(todayKey, 18, "g", "tarj", 54000, "Resumen Visa"),
     mk(todayKey, 20, "g", "salir", 21000, "Delivery"),
   ].filter(x => +x.d.slice(8) <= Math.max(nowDay, 5));
   const prevItems = [
@@ -666,12 +749,16 @@ function demoState() {
     mk(prev, 6, "g", "super", 142000, "Supermercado"),
     mk(prev, 9, "g", "trans", 26000, "Nafta"),
     mk(prev, 12, "g", "salir", 88000, "Cena con amigos"),
-    mk(prev, 15, "g", "otros", 65000, "Zapatillas"),
-    mk(prev, 20, "g", "tarj", 54000, "Resumen Visa"),
+    { ...mk(prev, 10, "g", "otros", 20000, "Zapatillas"), id: "demo-zap-1", cp: "demo-zap", ci: 1, cn: 6, card: "Visa" },
     mk(prev, 25, "g", "ahorro", 150000, "Viaje a Bariloche", "demo-viaje"),
     mk(prev, 25, "g", "ahorro", 260000, "Dólares para emergencias", "demo-emergencia", 185),
   ];
-  return { months: { [todayKey]: { items: curItems }, [prev]: { items: prevItems } }, goals, settings: cleanSettings() };
+  const cards = [
+    { id: "demo-zap", note: "Zapatillas", cat: "otros", amt: 120000, n: 6, first: prev, d: shiftKey(prev, -1) + "-20", card: "Visa" },
+    { id: "demo-heladera", note: "Heladera", cat: "casa", amt: 540000, n: 12, first: todayKey, d: prev + "-22", card: "Mastercard" },
+    { id: "demo-cumple", note: "Cena de cumple", cat: "salir", amt: 45000, n: 1, first: shiftKey(todayKey, 1), d: todayKey + "-01", card: "Visa" },
+  ];
+  return { months: { [todayKey]: { items: curItems }, [prev]: { items: prevItems } }, goals, cards, settings: cleanSettings() };
 }
 let shown = () => demo ? demoData : state;
 let demoData = demoState();
@@ -682,20 +769,20 @@ function toast(msg) {
   const el = $("#toast"); el.textContent = msg; el.hidden = false;
   clearTimeout(toast.t); toast.t = setTimeout(() => (el.hidden = true), 3200);
 }
-function hasData(s) { return Object.values(s.months).some(m => m.items && m.items.length) || s.goals.length > 0; }
+function hasData(s) { return Object.values(s.months).some(m => m.items && m.items.length) || s.goals.length > 0 || s.cards.length > 0; }
 
 function useLocal() {
   const KEY = "cuentas-claras-v1";
   let ok = true;
   try {
     const raw = localStorage.getItem(KEY);
-    if (raw) { const p = JSON.parse(raw); state = { months: p.months || {}, goals: cleanGoals(p.goals), settings: cleanSettings(p.settings) }; }
+    if (raw) { const p = JSON.parse(raw); state = { months: p.months || {}, goals: cleanGoals(p.goals), cards: cleanCards(p.cards), settings: cleanSettings(p.settings) }; }
   } catch (e) { ok = false; }
   const save = () => {
     try { localStorage.setItem(KEY, JSON.stringify(state)); }
     catch (e) { toast("No se pudo guardar en este navegador."); }
   };
-  store = { saveMonth: save, saveGoals: save, saveSettings: save };
+  store = { saveMonth: save, saveGoals: save, saveCards: save, saveSettings: save };
   setStatus(ok ? "Guardado en este dispositivo" : "No se guarda al cerrar");
   demo = !hasData(state);
   ready();
@@ -719,20 +806,22 @@ async function initStore() {
     const col = db.collection("data/users/" + id);
     let first = true;
     col.onSnapshot(snap => {
-      const months = {}; let goals = [], settings = cleanSettings();
+      const months = {}; let goals = [], cards = [], settings = cleanSettings();
       snap.docs.forEach(d => {
         const v = d.data() || {};
         if (d.id === "goals") goals = cleanGoals(v.list);
+        else if (d.id === "cards") cards = cleanCards(v.list);
         else if (d.id === "settings") settings = cleanSettings(v);
         else if (d.id.startsWith("m-")) months[d.id.slice(2)] = { items: [...(v.items || [])] };
       });
-      state = { months, goals, settings };
+      state = { months, goals, cards, settings };
       if (first) { demo = !hasData(state); first = false; ready(); }
       else { if (hasData(state)) demo = false; render(); }
     }, () => { setStatus("Sin conexión"); toast("Se cortó la conexión. Recargá la página."); });
     store = {
       saveMonth: k => queue("m-" + k, () => col.doc("m-" + k).set({ items: (state.months[k] && state.months[k].items) || [] })),
       saveGoals: () => queue("goals", () => col.doc("goals").set({ list: state.goals })),
+      saveCards: () => queue("cards", () => col.doc("cards").set({ list: state.cards })),
       saveSettings: () => queue("settings", () => col.doc("settings").set(state.settings)),
     };
     setStatus("Guardado en tu cuenta");
@@ -766,6 +855,25 @@ function monthStats(src, k) {
   return { items, inc, out, sav, left: inc - out - sav, byCat, byNote, byKind };
 }
 
+// Cuota i (desde 1): todas iguales y la última absorbe los centavos
+const cuotaAmt = (p, i) => { const base = Math.floor((p.amt / p.n) * 100) / 100; return i === p.n ? Math.round((p.amt - base * (p.n - 1)) * 100) / 100 : base; };
+function cardInfo(src) {
+  const paid = {}, paidByMonth = {};
+  for (const [k, m] of Object.entries(src.months)) for (const it of m.items || []) {
+    if (!it.cp) continue;
+    (paid[it.cp] = paid[it.cp] || new Set()).add(it.ci);
+    paidByMonth[k] = (paidByMonth[k] || 0) + it.amt;
+  }
+  // Cuotas sin pagar, cada una en el mes de su resumen
+  const pending = [];
+  for (const p of src.cards) for (let i = 1; i <= p.n; i++) {
+    if (!(paid[p.id] && paid[p.id].has(i))) pending.push({ p, i, k: shiftKey(p.first, i - 1), amt: cuotaAmt(p, i) });
+  }
+  return { paid, paidByMonth, pending };
+}
+const sum = (arr, f) => arr.reduce((a, x) => a + f(x), 0);
+const shortMonth = k => monthName(k).split(" ")[0].toLowerCase();
+
 /* ---------- Pintar ---------- */
 function render() {
   const src = shown();
@@ -773,7 +881,7 @@ function render() {
   $("#monthLabel").textContent = monthName(cur);
   $("#nextM").disabled = false;
   $("#monthNav").hidden = tab === "ahorros";
-  renderMonth(src); renderList(src); renderYear(src); renderGoals(src);
+  renderMonth(src); renderCards(src); renderList(src); renderYear(src); renderGoals(src);
 }
 
 function renderMonth(src) {
@@ -791,6 +899,9 @@ function renderMonth(src) {
     const kept = (s.sav + s.left) / s.inc;
     v = `De cada $100 que entraron, te ${kept >= 0 ? "quedan" : "faltan"} <strong>$${Math.round(kept * 100)}</strong> entre lo ahorrado y lo que sobra.`;
   }
+  const ccDue = cur >= todayKey ? sum(cardInfo(src).pending.filter(x => x.k <= cur), x => x.amt) : 0;
+  if (ccDue > 0) v += `<br>Además tenés <strong>${fmt(ccDue)}</strong> de tarjeta para pagar ${cur === todayKey ? "este mes" : "en " + shortMonth(cur)}, que todavía no cuenta como gasto.` +
+    (s.inc > 0 ? ` Cuando lo pagues, te van a quedar <strong>${fmt(s.left - ccDue)}</strong>.` : "");
   $("#verdict").innerHTML = v;
   const lts = $("#leftToSave");
   lts.hidden = !(s.left > 0 && s.inc > 0);
@@ -856,6 +967,87 @@ function renderMonth(src) {
   $("#facts").innerHTML = facts.join("");
 }
 
+let ccPaying = null; // tarjeta cuyo resumen se está marcando como pagado
+function renderCards(src) {
+  $("#ccCard").hidden = !src.cards.length;
+  if (!src.cards.length) return;
+  const info = cardInfo(src);
+  const K = cur, future = K > todayKey;
+  // Lo que hay que pagar en el resumen de este mes, por tarjeta (incluye cuotas viejas sin marcar)
+  const groups = new Map();
+  info.pending.filter(x => x.k <= K).forEach(x => groups.set(x.p.card, [...(groups.get(x.p.card) || []), x]));
+  let html = [...groups].map(([card, arr]) => {
+    const lines = arr.map(x => `${esc(x.p.note || catOf(x.p.cat).n)} <span class="num">${fmt(x.amt)}</span>${x.p.n > 1 ? ` (${x.i}/${x.p.n})` : ""}`).join(" · ");
+    const defDate = K === todayKey ? todayISO : K + "-" + pad(daysIn(K));
+    const action = future ? `<p class="sub">Lo vas a poder marcar como pagado cuando llegue ese mes.</p>`
+      : ccPaying === card ? `<div class="sync">
+          <label for="ccPayDate"><strong>¿Qué día lo pagaste?</strong></label>
+          <input id="ccPayDate" type="date" value="${defDate}">
+          <span class="sub">Cada cuota pasa a tus gastos de ese día, en su categoría.</span>
+          <div class="btns"><button class="btn" data-cc-confirm="${esc(card)}">Confirmar pago</button><button class="btn ghost" data-cc-cancel>Cancelar</button></div>
+        </div>`
+      : `<div class="btns"><button class="btn" data-cc-pay="${esc(card)}">Ya pagué este resumen</button></div>`;
+    return `<div class="ccdue">
+      <div class="row"><strong>${esc(card || "Tu tarjeta")}</strong><span class="pill ${future ? "mid" : "bad"}">${future ? "Vas a pagar" : "A pagar"}</span></div>
+      <div><span class="big-num">${fmt(sum(arr, x => x.amt))}</span> <span class="sub">en el resumen de ${shortMonth(K)}</span></div>
+      <div class="sub">${lines}</div>
+      ${arr.some(x => x.k < K) ? `<p class="sub">Incluye cuotas de meses anteriores que no marcaste como pagadas.</p>` : ""}
+      ${action}
+    </div>`;
+  }).join("");
+  if (!html) html = `<p class="sub">No tenés nada de tarjeta para pagar en ${monthName(K)}.</p>`;
+  const paidNow = info.paidByMonth[K] || 0;
+  if (paidNow) html += `<p class="sub">En ${monthName(K)} pagaste <strong class="num">${fmt(paidNow)}</strong> de tarjeta. Eso ya está sumado en tus gastos.</p>`;
+  $("#ccDue").innerHTML = html;
+  const cd = $("#ccPayDate");
+  if (cd) cd.focus();
+
+  // Evolución: 3 meses para atrás y hasta la última cuota (como mucho, un año para adelante)
+  const lastK = info.pending.reduce((m, x) => (x.k > m ? x.k : m), K);
+  const end = lastK < shiftKey(K, 3) ? shiftKey(K, 3) : lastK > shiftKey(K, 12) ? shiftKey(K, 12) : lastK;
+  const rows = [];
+  for (let k = shiftKey(K, -3); k <= end; k = shiftKey(k, 1)) {
+    const paid = info.paidByMonth[k] || 0, pend = sum(info.pending.filter(x => x.k === k), x => x.amt);
+    if (paid || pend || k === K) rows.push({ k, paid, pend });
+  }
+  const max = Math.max(1, ...rows.map(r => r.paid + r.pend));
+  $("#ccBars").innerHTML = rows.map(r => `<div class="cat${r.k === K ? " now" : ""}">
+      <div class="row"><span class="name">${monthName(r.k)}</span><strong class="num">${fmt(r.paid + r.pend)}</strong></div>
+      <div class="bar split"><i style="width:${(r.paid / max) * 100}%;background:var(--accent)"></i><i style="width:${(r.pend / max) * 100}%;background:color-mix(in srgb, var(--accent) 35%, var(--surface))"></i></div>
+      ${r.paid && r.pend ? `<div class="sub">Pagado ${fmt(r.paid)} · ${r.k < todayKey ? "sin marcar" : "por pagar"} ${fmt(r.pend)}</div>` : r.pend && r.k < todayKey ? `<div class="sub">Sin marcar como pagado</div>` : ""}
+    </div>`).join("");
+  const owed = sum(info.pending, x => x.amt);
+  $("#ccTotal").innerHTML = owed ? `En total te quedan <strong class="num">${fmt(owed)}</strong> por pagar de tarjeta. La última cuota es en ${monthName(lastK).toLowerCase()}.` : "No te queda nada por pagar de tarjeta.";
+
+  // Compras con cuotas pendientes
+  const active = src.cards.filter(p => info.pending.some(x => x.p === p)).sort((a, b) => b.d.localeCompare(a.d));
+  $("#ccList").innerHTML = active.length ? active.map(p => {
+    const c = catOf(p.cat);
+    const done = info.paid[p.id] ? info.paid[p.id].size : 0;
+    const left = sum(info.pending.filter(x => x.p === p), x => x.amt);
+    return `<button class="item" data-cc-edit="${esc(p.id)}">
+      <span class="dot" style="background:${c.c}"></span>
+      <span class="what"><span>${esc(p.note || c.n)}</span><span class="sub">${p.card ? esc(p.card) + " · " : ""}${p.n > 1 ? `${done} de ${p.n} cuotas pagadas · faltan ${fmt(left)}` : "1 pago en el resumen de " + shortMonth(p.first)}</span></span>
+      <span class="amt out">${fmt(p.amt)}</span>
+    </button>`;
+  }).join("") : `<p class="sub">No tenés compras pendientes. Tocá <strong>Anotar gasto</strong> y elegí <strong>Tarjeta de crédito</strong> para sumar una.</p>`;
+}
+
+// Marca como pagado el resumen de la tarjeta: cada cuota pasa a ser un gasto del día del pago
+function payStatement(card, K, d) {
+  const due = cardInfo(state).pending.filter(x => x.k <= K && x.p.card === card);
+  if (!due.length) return;
+  leaveDemo();
+  const k = d.slice(0, 7);
+  const items = [...(state.months[k]?.items || [])];
+  for (const x of due) items.push({ id: x.p.id + "-" + x.i, t: "g", cat: x.p.cat, amt: x.amt, d, note: x.p.note, cp: x.p.id, ci: x.i, cn: x.p.n, ...(x.p.card ? { card: x.p.card } : {}) });
+  state.months[k] = { items };
+  store.saveMonth(k);
+  ccPaying = null;
+  render();
+  toast(`Listo: ${fmt(sum(due, x => x.amt))} de ${card || "la tarjeta"} pasaron a tus gastos de ${monthName(k)}.`);
+}
+
 function renderList(src) {
   const sel = $("#fCat");
   if (!sel.options.length) {
@@ -890,7 +1082,7 @@ function renderList(src) {
       const cls = i.t === "i" ? "in" : c.k === "aho" ? "sv" : "out";
       return `<button class="item" data-edit="${i.id}">
         <span class="dot" style="background:${c.c}"></span>
-        <span class="what"><span>${esc(i.note || c.n)}</span>${i.note ? `<span class="sub">${esc(c.n)}</span>` : ""}</span>
+        <span class="what"><span>${esc(i.note || c.n)}</span>${i.cp ? `<span class="sub">${esc(c.n)} · ${i.cn > 1 ? `cuota ${i.ci} de ${i.cn}` : "tarjeta"}${i.card ? " · " + esc(i.card) : ""}</span>` : i.note ? `<span class="sub">${esc(c.n)}</span>` : ""}</span>
         <span class="amt ${cls}">${i.t === "i" ? "+" : "−"}${fmt(i.amt)}</span>
       </button>`;
     }).join("")}</div>`;
@@ -1083,30 +1275,35 @@ function demoBlock() {
 }
 
 /* ---------- Panel para anotar ---------- */
-let form = { t: "g", cat: null, editing: null, month: null, manual: false };
+let form = { t: "g", cat: null, editing: null, month: null, manual: false, pay: "now", cp: null };
 
-function openSheet(t, item, goalId, preset) {
+// purchase: una compra con tarjeta para corregir
+function openSheet(t, item, goalId, preset, purchase) {
   if (item && item.t === "s") goalId = item.g;
   const goal = goalId ? goalOf(shown(), goalId) : null;
-  form = { t, cat: item ? catOf(item.cat).id : goal || preset ? "ahorro" : null, editing: item ? item.id : null, month: item ? item.d.slice(0, 7) : null,
-    manual: !!(item || goal || preset), goal: item ? item.g || "" : goal ? goal.id : "" };
+  form = { t, cat: item ? catOf(item.cat).id : purchase ? catOf(purchase.cat).id : goal || preset ? "ahorro" : null, editing: item ? item.id : null, month: item ? item.d.slice(0, 7) : null,
+    manual: !!(item || goal || preset || purchase), goal: item ? item.g || "" : goal ? goal.id : "", pay: purchase ? "cc" : "now", cp: purchase ? purchase.id : null };
   $("#noteLbl").textContent = t === "g" ? "¿Qué fue?" : t === "s" ? "¿Para qué la usaste? (opcional)" : "¿De qué es? (opcional)";
   $("#fNote").placeholder = t === "g" ? "Ej: luz, gas, salida, verdulería" : t === "s" ? "Ej: pasajes del viaje" : "Ej: sueldo de octubre";
   const seen = new Set();
   $("#pastNotes").innerHTML = Object.values(state.months).flatMap(m => m.items || [])
     .filter(i => i.t === t && i.note && !seen.has(norm(i.note)) && seen.add(norm(i.note)))
     .slice(0, 60).map(i => `<option value="${esc(i.note)}"></option>`).join("");
-  $("#sheetTitle").textContent = t === "s" ? "Sacar plata de " + (goal ? goal.name : "un ahorro") : goal ? "Poner plata en " + goal.name : preset ? "Pasar a ahorros" : (item ? "Corregir " : "Anotar ") + (t === "g" ? "gasto" : "ingreso");
+  const seenCards = new Set(shown().cards.map(p => p.card).filter(Boolean));
+  $("#pastCards").innerHTML = [...seenCards].map(c => `<option value="${esc(c)}"></option>`).join("");
+  $("#sheetTitle").textContent = purchase ? "Corregir compra con tarjeta" : t === "s" ? "Sacar plata de " + (goal ? goal.name : "un ahorro") : goal ? "Poner plata en " + goal.name : preset ? "Pasar a ahorros" : (item ? "Corregir " : "Anotar ") + (t === "g" ? "gasto" : "ingreso");
   const tone = t === "s" ? "var(--accent)" : t === "i" || goal || preset || (item && form.cat === "ahorro") ? "var(--in)" : "var(--out)";
   $("#fSave").className = "btn";
   $("#fSave").style.background = tone;
   $("#fSave").style.borderColor = tone;
   $("#fSave").style.color = "var(--surface)";
-  $("#fAmt").value = item ? amountText(item.amt) : preset ? amountText(preset.amt) : "";
+  $("#fAmt").value = item ? amountText(item.amt) : purchase ? amountText(purchase.amt) : preset ? amountText(preset.amt) : "";
   $("#fUsd").value = item && item.usd ? amountText(item.usd) : "";
-  $("#fNote").value = item ? item.note || "" : t === "s" ? "" : goal ? goal.name : preset ? preset.note : "";
-  $("#fDate").value = item ? item.d : preset ? preset.d : (cur === todayKey ? todayISO : cur + "-01");
-  $("#fDel").hidden = !item;
+  $("#fNote").value = item ? item.note || "" : purchase ? purchase.note : t === "s" ? "" : goal ? goal.name : preset ? preset.note : "";
+  $("#fDate").value = item ? item.d : purchase ? purchase.d : preset ? preset.d : (cur === todayKey ? todayISO : cur + "-01");
+  $("#fCard").value = purchase ? purchase.card : "";
+  fillCcSelects(purchase ? purchase.n : 1, purchase ? purchase.first : null);
+  $("#fDel").hidden = !item && !purchase;
   $("#fDel").textContent = "Borrar";
   delete $("#fDel").dataset.sure;
   $("#fErr").hidden = true;
@@ -1117,8 +1314,9 @@ function openSheet(t, item, goalId, preset) {
 function closeSheet() { $("#sheet").hidden = true; $("#sheetBg").hidden = true; }
 function drawChips() {
   $("#catField").hidden = form.t === "s";
-  if (form.t === "s") { $("#goalField").hidden = true; paintUsd(); return; }
-  const list = form.t === "g" ? CATS_G : CATS_I;
+  if (form.t === "s") { $("#goalField").hidden = true; paintUsd(); paintPay(); return; }
+  // Con tarjeta no se puede ahorrar
+  const list = form.t === "g" ? CATS_G.filter(c => c.id !== "ahorro" || form.pay !== "cc") : CATS_I;
   let hint = "";
   if (form.t === "g") {
     if (!$("#fNote").value.trim()) hint = "Escribí qué fue y la ubicamos sola en una categoría.";
@@ -1138,6 +1336,7 @@ function drawChips() {
   }
   form.goal = showGoal ? $("#fGoal").value : "";
   paintUsd();
+  paintPay();
   $("#chips").innerHTML = list.map(c => `<button type="button" class="chip" data-cat="${c.id}" aria-pressed="${form.cat === c.id}">
     <b><span class="dot" style="background:${c.c}"></span>${c.n}</b><small>${c.h}</small></button>`).join("");
 }
@@ -1154,6 +1353,57 @@ function paintUsd() {
   $("#amtLbl").textContent = out ? (g ? "Si los cambiaste a pesos, ¿cuántos pesos recibiste? (opcional)" : "¿Cuánto sacaste?") : g ? "¿Cuántos pesos usaste?" : "¿Cuánto?";
   $("#usdLbl").textContent = out ? "¿Cuántos dólares sacaste?" : "¿Cuántos dólares compraste?";
   $("#usdHint").textContent = out ? "Si los gastaste en dólares, dejá vacío lo de los pesos." : "Arriba poné los pesos que usaste (eso cuenta como ahorro del mes). Acá, los dólares que te quedaron.";
+}
+// Tarjeta de crédito: solo para gastos nuevos (o para corregir una compra con tarjeta)
+function paintPay() {
+  const can = form.t === "g" && form.cat !== "ahorro" && !form.editing;
+  if (!can) form.pay = "now";
+  $("#payField").hidden = !can || !!form.cp;
+  document.querySelectorAll("[data-pay]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.pay === form.pay)));
+  const cc = form.pay === "cc";
+  $("#ccFields").hidden = !cc;
+  $("#fDateLbl").textContent = cc ? "Fecha de la compra" : "Fecha";
+  if (cc) paintCcHint();
+}
+function fillCcSelects(n, first) {
+  const ns = [1, 2, 3, 4, 5, 6, 9, 10, 12, 18, 24];
+  if (!ns.includes(n)) { ns.push(n); ns.sort((a, b) => a - b); }
+  $("#fCuotas").innerHTML = ns.map(x => `<option value="${x}">${x === 1 ? "1 pago" : x + " cuotas"}</option>`).join("");
+  $("#fCuotas").value = String(n);
+  fillFirst(first);
+}
+// Por defecto la compra entra en el resumen del mes siguiente
+function fillFirst(first) {
+  const d = $("#fDate").value;
+  const base = /^\d{4}-\d{2}/.test(d) ? d.slice(0, 7) : todayKey;
+  const opts = [0, 1, 2].map(i => shiftKey(base, i));
+  if (first && !opts.includes(first)) { opts.push(first); opts.sort(); }
+  $("#fFirst").innerHTML = opts.map(k => `<option value="${k}">El de ${monthName(k).toLowerCase()}</option>`).join("");
+  $("#fFirst").value = first || opts[1];
+}
+function paintCcHint() {
+  const amt = parseAmount($("#fAmt").value), n = +$("#fCuotas").value || 1, first = $("#fFirst").value;
+  if (!first) return;
+  if (!usdGoalSelected()) $("#amtLbl").textContent = n > 1 ? "¿Cuánto salió en total?" : "¿Cuánto?";
+  const parts = [];
+  if (amt > 0 && n > 1) parts.push(`Son ${n} cuotas de ${fmt(amt / n)}.`);
+  parts.push(n > 1 ? `Las pagás desde el resumen de ${monthName(first).toLowerCase()} hasta el de ${monthName(shiftKey(first, n - 1)).toLowerCase()}.` : `La pagás en el resumen de ${monthName(first).toLowerCase()}.`);
+  parts.push("No cuenta como gasto hasta que marques ese resumen como pagado.");
+  $("#ccHint").textContent = parts.join(" ");
+}
+function saveCardPurchase(amt, d) {
+  const n = +$("#fCuotas").value || 1, first = $("#fFirst").value;
+  if (!/^\d{4}-\d{2}$/.test(first)) return fail("Elegí en qué resumen entra.");
+  const wasDemo = demo;
+  leaveDemo();
+  const editing = form.cp && !wasDemo;
+  const p = { id: editing ? form.cp : uid(), note: $("#fNote").value.trim(), cat: form.cat, amt, n, first, d, card: $("#fCard").value.trim().slice(0, 30) };
+  state.cards = editing ? state.cards.map(x => (x.id === p.id ? p : x)) : [...state.cards, p];
+  store.saveCards();
+  closeSheet(); render();
+  toast(editing ? "Compra con tarjeta corregida" : n > 1
+    ? `Guardado: ${n} cuotas de ${fmt(amt / n)}. Empiezan a contar como gasto cuando pagues el resumen de ${shortMonth(first)}.`
+    : `Guardado. Va a contar como gasto cuando pagues el resumen de ${shortMonth(first)}.`);
 }
 function fail(msg) { const e = $("#fErr"); e.textContent = msg; e.hidden = false; }
 
@@ -1179,6 +1429,7 @@ $("#form").addEventListener("submit", e => {
   if (!form.cat) return fail(form.t === "g" ? "Elegí en qué gastaste." : "Elegí de dónde vino la plata.");
   const d = $("#fDate").value;
   if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) return fail("Elegí la fecha.");
+  if (form.pay === "cc") return saveCardPurchase(amt, d);
   const usdGoal = usdGoalSelected();
   const usd = usdGoal ? parseAmount($("#fUsd").value) : 0;
   if (usdGoal && !(usd > 0)) { $("#fUsd").focus(); return fail("Escribí cuántos dólares compraste. Por ejemplo: 100"); }
@@ -1187,6 +1438,9 @@ $("#form").addEventListener("submit", e => {
   const item = { id: form.editing && !wasDemo ? form.editing : uid(), t: form.t, cat: form.cat, amt, d, note: $("#fNote").value.trim() };
   if (g) item.g = g;
   if (g && usd) item.usd = usd;
+  // Una cuota ya pagada sigue atada a su compra con tarjeta
+  const old = form.editing && !wasDemo ? (state.months[form.month]?.items || []).find(i => i.id === form.editing) : null;
+  if (old && old.cp) Object.assign(item, { cp: old.cp, ci: old.ci, cn: old.cn }, old.card ? { card: old.card } : {});
   upsert(item, form.editing && !wasDemo ? form.month : null);
   cur = d.slice(0, 7);
   closeSheet(); render();
@@ -1225,6 +1479,12 @@ $("#fDel").addEventListener("click", () => {
   const b = $("#fDel");
   if (!b.dataset.sure) { b.dataset.sure = "1"; b.textContent = "Tocá de nuevo para borrar"; return; }
   if (demo) { closeSheet(); toast("Esto es un ejemplo: no hay nada que borrar."); return; }
+  if (form.cp) {
+    state.cards = state.cards.filter(p => p.id !== form.cp);
+    store.saveCards();
+    closeSheet(); render(); toast("Compra borrada. Las cuotas que ya pagaste siguen en tus gastos.");
+    return;
+  }
   const k = form.month;
   state.months[k] = { items: (state.months[k]?.items || []).filter(i => i.id !== form.editing) };
   store.saveMonth(k);
@@ -1279,11 +1539,12 @@ function buildWorkbook(src) {
 
   // Movimientos
   const mov = [["Fecha", "Tipo", "Qué fue", "Categoría", "Monto"]];
+  const cuota = i => i.cp ? ` (${i.cn > 1 ? `cuota ${i.ci}/${i.cn}` : "tarjeta"}${i.card ? " " + i.card : ""})` : "";
   keys.forEach(k => monthStats(src, k).items.slice().sort((a, b) => a.d.localeCompare(b.d)).forEach(i => {
     const goal = i.g ? goalOf(src, i.g) : null;
     const tipo = i.t === "i" ? "Ingreso" : i.t === "s" ? "Sacado de ahorro" : "Gasto";
     const extra = i.usd ? ` (${i.t === "s" ? "sacaste" : "compraste"} US$ ${i.usd})` : "";
-    mov.push([dateOf(i.d), tipo, (i.note || "") + extra, catOf(i.cat).n + (goal ? ": " + goal.name : ""), i.amt]);
+    mov.push([dateOf(i.d), tipo, (i.note || "") + extra + cuota(i), catOf(i.cat).n + (goal ? ": " + goal.name : ""), i.amt]);
   }));
 
   // Ahorros
@@ -1298,6 +1559,14 @@ function buildWorkbook(src) {
   if (sv.loose) aho.push(["Sin objetivo", "Pesos", "", "", sv.loose, "", "", ""]);
   aho.push(["Pesos que separaste en total", "Pesos", "", "", sv.total, "", "", ""]);
 
+  // Tarjeta
+  const info = cardInfo(src);
+  const tar = [["Fecha de compra", "Qué fue", "Categoría", "Tarjeta", "Total", "Cuotas", "Cuotas pagadas", "Falta pagar", "Primer resumen", "Último resumen"]];
+  src.cards.slice().sort((a, b) => a.d.localeCompare(b.d)).forEach(p => {
+    tar.push([dateOf(p.d), p.note, catOf(p.cat).n, p.card || "", p.amt, p.n, info.paid[p.id] ? info.paid[p.id].size : 0,
+      sum(info.pending.filter(x => x.p === p), x => x.amt), monthName(p.first), monthName(shiftKey(p.first, p.n - 1))]);
+  });
+
   const wb = X.utils.book_new();
   X.utils.book_append_sheet(wb, sheet(res, [18, 16, 16, 16, 16], [1, 2, 3, 4]), "Resumen por mes");
   X.utils.book_append_sheet(wb, sheet(cat, [18, ...keys.map(() => 16), 16], keys.map((_, i) => i + 1).concat(keys.length + 1)), "Gastos por categoría");
@@ -1305,6 +1574,7 @@ function buildWorkbook(src) {
   const wsA = sheet(aho, [28, 10, 24, 16, 16, 16, 18, 16], [3, 4, 5, 6]);
   usdRows.forEach(r => [3, 4, 5, 6].forEach(c => { const cell = wsA[X.utils.encode_cell({ r, c })]; if (cell && cell.t === "n") cell.z = '"US$" #,##0.00'; }));
   X.utils.book_append_sheet(wb, wsA, "Ahorros");
+  if (src.cards.length) X.utils.book_append_sheet(wb, sheet(tar, [14, 28, 18, 16, 16, 8, 14, 16, 18, 18], [4, 7], [0]), "Tarjeta");
   return X.write(wb, { bookType: "xlsx", type: "array" });
 }
 
@@ -1343,7 +1613,7 @@ async function saveFile(filename, blob, okMsg) {
 /* ---------- Copia de seguridad ---------- */
 function backup() {
   if (demo || !hasData(state)) { toast("Todavía no anotaste nada para guardar."); return; }
-  const data = JSON.stringify({ app: "cuentas-claras", v: 3, fecha: todayISO, months: state.months, goals: state.goals, settings: state.settings });
+  const data = JSON.stringify({ app: "cuentas-claras", v: 4, fecha: todayISO, months: state.months, goals: state.goals, cards: state.cards, settings: state.settings });
   saveFile("Copia Cuentas Claras " + todayISO + ".json", new Blob([data], { type: "application/json" }), "Listo, se descargó la copia. Guardala en un lugar seguro.");
 }
 
@@ -1366,6 +1636,7 @@ function restore(text) {
       const clean = { id: String(it.id), t: it.t, cat: String(it.cat || "otros"), amt: +it.amt, d: it.d, note: String(it.note || "").slice(0, 80) };
       if (it.g) clean.g = String(it.g);
       if (+it.usd > 0) clean.usd = +it.usd;
+      if (it.cp) Object.assign(clean, { cp: String(it.cp), ci: +it.ci || 1, cn: +it.cn || 1 }, it.card ? { card: String(it.card).slice(0, 30) } : {});
       byId.set(it.id, clean);
     }
     state.months[k] = { items: [...byId.values()] };
@@ -1374,6 +1645,9 @@ function restore(text) {
   const have = new Set(state.goals.map(g => g.id));
   const newGoals = cleanGoals(p.goals).filter(g => !have.has(g.id));
   if (newGoals.length) { state.goals = [...state.goals, ...newGoals]; store.saveGoals(); }
+  const haveCards = new Set(state.cards.map(c => c.id));
+  const newCards = cleanCards(p.cards).filter(c => !haveCards.has(c.id));
+  if (newCards.length) { state.cards = [...state.cards, ...newCards]; store.saveCards(); added += newCards.length; }
   if (!state.settings.auto && p.settings && p.settings.auto) { state.settings = cleanSettings(p.settings); store.saveSettings(); }
   render();
   toast(added ? `Listo, recuperamos ${added} movimiento${added === 1 ? "" : "s"}.` : "Listo. Ya tenías todo lo que había en la copia.");
@@ -1405,6 +1679,20 @@ document.addEventListener("click", e => {
   }
   const ge = e.target.closest("[data-goal-edit]");
   if (ge) { if (!demoBlock()) editGoal(goalOf(state, ge.dataset.goalEdit)); return; }
+  const pay = e.target.closest("[data-pay]");
+  if (pay) { form.pay = pay.dataset.pay; drawChips(); $("#fErr").hidden = true; return; }
+  const cce = e.target.closest("[data-cc-edit]");
+  if (cce) { const p = shown().cards.find(x => x.id === cce.dataset.ccEdit); if (p) openSheet("g", null, null, null, p); return; }
+  const ccp = e.target.closest("[data-cc-pay]");
+  if (ccp) { if (!demoBlock()) { ccPaying = ccp.dataset.ccPay; render(); } return; }
+  if (e.target.closest("[data-cc-cancel]")) { ccPaying = null; render(); return; }
+  const ccc = e.target.closest("[data-cc-confirm]");
+  if (ccc) {
+    const d = $("#ccPayDate").value;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d)) { toast("Elegí el día en que pagaste."); return; }
+    payStatement(ccc.dataset.ccConfirm, cur, d);
+    return;
+  }
   const chip = e.target.closest("[data-cat]");
   if (chip) { form.cat = chip.dataset.cat; form.manual = true; drawChips(); $("#fErr").hidden = true; return; }
   const ed = e.target.closest("[data-edit]");
@@ -1443,9 +1731,13 @@ $("#fNote").addEventListener("input", () => {
   if (form.t !== "g" || form.manual) return drawChips();
   const g = guessCat($("#fNote").value);
   form.auto = !!g;
-  form.cat = $("#fNote").value.trim() ? (g || "otros") : null;
+  form.cat = $("#fNote").value.trim() ? (g === "ahorro" && form.pay === "cc" ? "otros" : g || "otros") : null;
   drawChips();
 });
+$("#fAmt").addEventListener("input", () => { if (form.pay === "cc") paintCcHint(); });
+$("#fCuotas").addEventListener("change", paintCcHint);
+$("#fFirst").addEventListener("change", paintCcHint);
+$("#fDate").addEventListener("change", () => { if (form.pay === "cc") { fillFirst(null); paintCcHint(); } });
 $("#closeSheet").addEventListener("click", closeSheet);
 $("#sheetBg").addEventListener("click", closeSheet);
 document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("#sheet").hidden) closeSheet(); });
@@ -1511,6 +1803,27 @@ $("#gDel").addEventListener("click", () => {
   editGoal(null); render();
   toast("Objetivo borrado. La plata que pusiste queda como ahorro sin objetivo.");
 });
+
+/* ---------- Paletas ---------- */
+// Pastel es la del CSS; las demás pisan los mismos tokens (iguales a Inversiones Claras).
+const PALETAS = {
+  pastel: {},
+  ciruela: {peri: "#6b4e71", sky: "#b8a1c9", mint: "#8aa39b", sage: "#f3eff6", rose: "#e6c9a8", bg: "#f8f6f9", surface: "#ffffff", ink: "#2a2230", muted: "#675d6d", line: "#e7e1ea", accent: "#6b4e71", in: "#4d7366", out: "#a54552", save: "#6b4e71", warn: "#9a6a1f", soft: "#f0ebf2"},
+  tierra: {peri: "#a6856a", sky: "#a9a098", mint: "#9fa292", sage: "#e7e3e0", rose: "#9b8784", bg: "#f6f3f0", surface: "#fffdfb", ink: "#2e2823", muted: "#6f655d", line: "#e4ddd6", accent: "#8a6a50", in: "#56634a", out: "#a04a3f", save: "#7a6260", warn: "#96682c", soft: "#efeae5"},
+  banca: {peri: "#c9a96e", sky: "#8fb9a8", mint: "#7a8f86", sage: "#f1e9da", rose: "#d9c39a", bg: "#f8f5ef", surface: "#ffffff", ink: "#1d2b27", muted: "#5c6b66", line: "#e6dfd1", accent: "#2f5d50", in: "#2f6b4f", out: "#a3443a", save: "#7a5a2a", warn: "#9a6a1f", soft: "#eef0ea"},
+  marino: {peri: "#4a6fa5", sky: "#d8c3a5", mint: "#a3b18a", sage: "#f2ede4", rose: "#b9c6d8", bg: "#f7f5f0", surface: "#ffffff", ink: "#17263b", muted: "#56637a", line: "#e2ddd3", accent: "#1f3a5f", in: "#4f6b3a", out: "#a8463d", save: "#1f3a5f", warn: "#9a6a1f", soft: "#eceff3"},
+  mediterraneo: {peri: "#c86b4a", sky: "#e9c6a5", mint: "#7d8f69", sage: "#f6efe7", rose: "#3d5a6c", bg: "#faf6f1", surface: "#ffffff", ink: "#2d2621", muted: "#6b5f55", line: "#eadfd3", accent: "#b25a3b", in: "#57693f", out: "#a33b2e", save: "#3d5a6c", warn: "#9a6a1f", soft: "#f3ece4"},
+  atardecer: {peri: "#e07a5f", sky: "#f2cc8f", mint: "#81b29a", sage: "#f4f1de", rose: "#3d405b", bg: "#fbf9f1", surface: "#ffffff", ink: "#2b2d42", muted: "#5e6075", line: "#ebe6d6", accent: "#3d405b", in: "#3f7a61", out: "#c0513a", save: "#3d405b", warn: "#a8691f", soft: "#f1efe4"},
+  grafito: {peri: "#8c9196", sky: "#d4c9b8", mint: "#c5d86d", sage: "#e9eae4", rose: "#3a3d40", bg: "#f5f5f2", surface: "#ffffff", ink: "#222426", muted: "#5f6266", line: "#e2e3dd", accent: "#3a3d40", in: "#5a7a1f", out: "#a8423a", save: "#3a3d40", warn: "#9a6a1f", soft: "#ecede8"},
+};
+function applyPalette(key) {
+  const root = document.documentElement.style;
+  for (const name of Object.keys(PALETAS.ciruela)) root.removeProperty("--" + name);
+  for (const [name, v] of Object.entries(PALETAS[key] || {})) root.setProperty("--" + name, v);
+  $("#palette").value = PALETAS[key] ? key : "pastel";
+}
+$("#palette").onchange = (e) => { applyPalette(e.target.value); try { localStorage.setItem("cuentas-claras-paleta", e.target.value); } catch (e) {} };
+try { applyPalette(localStorage.getItem("cuentas-claras-paleta") || "pastel"); } catch (e) { applyPalette("pastel"); }
 
 /* ---------- Arranque ---------- */
 $("#fSave").disabled = true;
